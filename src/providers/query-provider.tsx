@@ -7,7 +7,7 @@ import { makeQueryClient } from "@/lib/query-client";
 import { authKeys } from "@/lib/query-keys";
 import { onSessionExpired } from "@/lib/api/auth-events";
 
-function AuthSessionSync() {
+const AuthSessionSync = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -19,9 +19,13 @@ function AuthSessionSync() {
   }, [queryClient, router]);
 
   return null;
+};
+
+interface Props {
+  children: React.ReactNode;
 }
 
-export function QueryProvider({ children }: { children: React.ReactNode }) {
+export const QueryProvider = ({ children }: Props) => {
   const [queryClient] = useState(() => makeQueryClient());
 
   return (
@@ -30,4 +34,4 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       {children}
     </QueryClientProvider>
   );
-}
+};

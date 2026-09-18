@@ -1,9 +1,11 @@
-import { GuestGuard } from "@/components/auth/auth-guard";
+import { GuestGuard } from "@/features/auth/components/auth-guard";
 
-export default function AuthLayout({
-  children,
-}: {
+interface Props {
   children: React.ReactNode;
-}) {
-  return <GuestGuard>{children}</GuestGuard>;
 }
+
+const AuthLayout = ({ children }: Props) => {
+  return <GuestGuard>{children}</GuestGuard>;
+};
+
+export default AuthLayout;

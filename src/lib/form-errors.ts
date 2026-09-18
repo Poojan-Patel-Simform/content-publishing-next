@@ -6,10 +6,10 @@ import { ApiError } from "@/lib/api/api-error";
  * Returns true if the error was a validation error (and was applied to fields),
  * false otherwise — callers should fall back to a generic <AuthFormError> banner.
  */
-export function applyValidationErrors<T extends FieldValues>(
+export const applyValidationErrors = <T extends FieldValues>(
   error: unknown,
   setError: UseFormSetError<T>
-): boolean {
+): boolean => {
   if (!(error instanceof ApiError)) return false;
   if (error.code !== "VALIDATION_ERROR" || !error.details) return false;
 
@@ -19,4 +19,4 @@ export function applyValidationErrors<T extends FieldValues>(
     }
   }
   return true;
-}
+};

@@ -3,17 +3,17 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { ResetPasswordForm } from "@/features/auth/components/reset-password-form";
 
-export default function ResetPasswordPage() {
+const ResetPasswordPage = () => {
   return (
     <Suspense fallback={null}>
       <ResetPasswordPageContent />
     </Suspense>
   );
-}
+};
 
-function ResetPasswordPageContent() {
+const ResetPasswordPageContent = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
@@ -30,4 +30,6 @@ function ResetPasswordPageContent() {
       </Card>
     </div>
   );
-}
+};
+
+export default ResetPasswordPage;

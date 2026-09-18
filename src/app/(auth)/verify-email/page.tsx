@@ -5,19 +5,19 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AuthFormError } from "@/components/auth/auth-form-error";
-import { ResendVerificationForm } from "@/components/auth/resend-verification-form";
-import { useVerifyEmail } from "@/hooks/use-verify-email";
+import { AuthFormError } from "@/features/auth/components/auth-form-error";
+import { ResendVerificationForm } from "@/features/auth/components/resend-verification-form";
+import { useVerifyEmail } from "@/features/auth/hooks";
 
-export default function VerifyEmailPage() {
+const VerifyEmailPage = () => {
   return (
     <Suspense fallback={null}>
       <VerifyEmailPageContent />
     </Suspense>
   );
-}
+};
 
-function VerifyEmailPageContent() {
+const VerifyEmailPageContent = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const verifyEmail = useVerifyEmail();
@@ -47,11 +47,11 @@ function VerifyEmailPageContent() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!token && (
-            <Alert variant="destructive">
-              <AlertTitle>Missing token</AlertTitle>
+            <Alert>
+              <AlertTitle>Send yourself a new link</AlertTitle>
               <AlertDescription>
-                This verification link is missing its token. Please use the
-                link from your email, or request a new one below.
+                Open the link from your verification email to finish. Lost it,
+                or has it expired? Request a fresh one below.
               </AlertDescription>
             </Alert>
           )}
@@ -81,4 +81,6 @@ function VerifyEmailPageContent() {
       </Card>
     </div>
   );
-}
+};
+
+export default VerifyEmailPage;

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
+import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 
-export default function ForgotPasswordPage() {
+const ForgotPasswordPage = () => {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
       <Card>
@@ -24,4 +24,6 @@ export default function ForgotPasswordPage() {
       </div>
     </div>
   );
-}
+};
+
+export default ForgotPasswordPage;

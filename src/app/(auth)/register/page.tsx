@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RegisterForm } from "@/components/auth/register-form";
-import { GoogleAuthLink } from "@/components/auth/google-auth-link";
+import { RegisterForm } from "@/features/auth/components/register-form";
+import { GoogleAuthLink } from "@/features/auth/components/google-auth-link";
 
-export default function RegisterPage() {
+const RegisterPage = () => {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
       <Card>
@@ -28,4 +28,6 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-}
+};
+
+export default RegisterPage;

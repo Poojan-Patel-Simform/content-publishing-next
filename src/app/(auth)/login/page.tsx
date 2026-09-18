@@ -5,18 +5,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { LoginForm } from "@/components/auth/login-form";
-import { GoogleAuthLink } from "@/components/auth/google-auth-link";
+import { LoginForm } from "@/features/auth/components/login-form";
+import { GoogleAuthLink } from "@/features/auth/components/google-auth-link";
 
-export default function LoginPage() {
+const LoginPage = () => {
   return (
     <Suspense fallback={null}>
       <LoginPageContent />
     </Suspense>
   );
-}
+};
 
-function LoginPageContent() {
+const LoginPageContent = () => {
   const searchParams = useSearchParams();
   const oauthError = searchParams.get("error");
   const returnTo = searchParams.get("returnTo") ?? "/account";
@@ -57,4 +57,6 @@ function LoginPageContent() {
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

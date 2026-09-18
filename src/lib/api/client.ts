@@ -13,15 +13,18 @@ declare module "axios" {
   }
 }
 
-const AUTH_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1`;
+
+/** Relative to `baseURL`; shared so the refresh guard and `authApi` can't drift. */
+export const REFRESH_URL = "/auth/refresh";
 
 export const apiClient = axios.create({
-  baseURL: AUTH_BASE_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
-function toApiError(error: unknown): ApiError {
+const toApiError = (error: unknown): ApiError => {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data as ApiEnvelope<unknown> | undefined;
     if (body && body.success === false) {
@@ -42,7 +45,7 @@ function toApiError(error: unknown): ApiError {
     message: error instanceof Error ? error.message : "Unknown error",
     requestId: "",
   });
-}
+};
 
 /**
  * The response interceptor below unwraps the `{ success, data }` envelope, so
@@ -50,33 +53,52 @@ function toApiError(error: unknown): ApiError {
  * though axios's own types still say `AxiosResponse<T>`. These helpers give
  * callers (auth.ts, the refresh logic below) an honest `Promise<T>` type.
  */
-export function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+export const apiGet = <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
   return apiClient.get(url, config) as unknown as Promise<T>;
-}
+};
 
-export function apiPost<T>(
+export const apiPost = <T>(
   url: string,
   data?: unknown,
   config?: AxiosRequestConfig
-): Promise<T> {
+): Promise<T> => {
   return apiClient.post(url, data, config) as unknown as Promise<T>;
-}
+};
+
+export const apiPatch = <T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  return apiClient.patch(url, data, config) as unknown as Promise<T>;
+};
+
+export const apiDelete = <T>(
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  return apiClient.delete(url, config) as unknown as Promise<T>;
+};
 
 let refreshPromise: Promise<AuthUser> | null = null;
 
-async function performRefresh(): Promise<AuthUser> {
+const performRefresh = async (): Promise<AuthUser> => {
   if (!refreshPromise) {
-    refreshPromise = apiPost<{ user: AuthUser }>("/refresh")
+    refreshPromise = apiPost<{ user: AuthUser }>(REFRESH_URL)
       .then((data) => data.user)
       .finally(() => {
         refreshPromise = null;
       });
   }
   return refreshPromise;
-}
+};
 
 apiClient.interceptors.response.use(
   (response) => {
+    // 204 carries no envelope to unwrap (logout, unpublish, change-password,
+    // cancel-schedule and archive all return it).
+    if (response.status === 204) return undefined as unknown as AxiosResponse;
+
     const body = response.data as ApiEnvelope<unknown>;
     if (body && body.success === false) {
       throw new ApiError(body.error, response.status);
@@ -89,7 +111,7 @@ apiClient.interceptors.response.use(
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
     const apiErr = toApiError(error);
 
-    const isRefreshCall = config?.url === "/refresh";
+    const isRefreshCall = config?.url === REFRESH_URL;
 
     if (status === 401 && config && !isRefreshCall && !config._retried) {
       config._retried = true;
