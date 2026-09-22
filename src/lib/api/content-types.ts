@@ -128,6 +128,13 @@ export interface AuditEvent {
   createdAt: string;
 }
 
+/** `GET /categories` — the fixed, backend-defined category list. */
+export interface CategoryDto {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 export interface PaginationMeta {
   page: number;
   pageSize: number;

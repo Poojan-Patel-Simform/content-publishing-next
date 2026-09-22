@@ -31,3 +31,8 @@ export const editorialKeys = {
   all: ["editorial"] as const,
   queue: (params: QueueParams = {}) => ["editorial", "queue", params] as const,
 };
+
+export const categoryKeys = {
+  all: ["categories"] as const,
+  list: () => ["categories", "list"] as const,
+};

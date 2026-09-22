@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { useCategories } from "@/features/categories/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,8 +27,8 @@ const FILTER_KEYS = ["q", "categorySlug", "tagSlug", "sort"] as const;
  * Every filter lives in the URL, so a filtered feed is a shareable link and the
  * back button walks the refinements.
  *
- * There is no taxonomy endpoint in the API (see `docs/api.md`), so category and
- * tag are entered as slugs rather than picked from a list.
+ * Category is picked from the backend's fixed category list (`GET
+ * /categories`); tag has no such taxonomy endpoint, so it stays a free-text slug.
  *
  * Callers must sit inside a `<Suspense>` boundary — `useSearchParams` opts the
  * subtree out of prerendering otherwise.
@@ -36,6 +37,8 @@ export const ContentFilters = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories ?? [];
 
   const q = searchParams.get("q") ?? "";
   const categorySlug = searchParams.get("categorySlug") ?? "";
@@ -62,7 +65,6 @@ export const ContentFilters = () => {
     const data = new FormData(event.currentTarget);
     apply({
       q: String(data.get("q") ?? "").trim(),
-      categorySlug: String(data.get("categorySlug") ?? "").trim(),
       tagSlug: String(data.get("tagSlug") ?? "").trim(),
     });
   };
@@ -89,13 +91,22 @@ export const ContentFilters = () => {
 
       <div className="space-y-1.5 sm:w-40">
         <Label htmlFor="feed-category">Category</Label>
-        <Input
-          id="feed-category"
-          name="categorySlug"
-          defaultValue={categorySlug}
-          maxLength={200}
-          placeholder="slug"
-        />
+        <Select
+          value={categorySlug || "__all__"}
+          onValueChange={(value) => apply({ categorySlug: !value || value === "__all__" ? "" : value })}
+        >
+          <SelectTrigger id="feed-category" className="w-full" aria-label="Category">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">All categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.slug}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-1.5 sm:w-40">

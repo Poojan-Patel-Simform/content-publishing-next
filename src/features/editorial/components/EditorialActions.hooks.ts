@@ -69,7 +69,11 @@ export const useEditorialActions = (
 
   const status = latestVersion?.status;
   const isPendingReview = status === "PENDING_REVIEW";
-  const canPublish = isPendingReview || status === "APPROVED";
+  // The API also allows the direct publish/schedule of a `PENDING_REVIEW`
+  // version (skipping the `APPROVED` stop), but this product doesn't: review
+  // is the gate, so an editor approves first and only then publishes or
+  // schedules. A version still in review offers Approve/Reject and nothing else.
+  const canPublish = status === "APPROVED";
   const isScheduled = status === "SCHEDULED";
   const canUnpublish = item.status === "PUBLISHED";
 

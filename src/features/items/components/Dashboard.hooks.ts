@@ -5,6 +5,7 @@ import type { ItemListParams } from "@/lib/api/items";
 import type { ItemStatus } from "@/lib/api/content-types";
 import { useAuth } from "@/features/auth/hooks";
 import { useItems } from "@/features/items/hooks";
+import { parsePage, parsePageSize } from "@/lib/pagination";
 
 const ITEM_STATUSES: ItemStatus[] = [
   "DRAFT",
@@ -12,11 +13,6 @@ const ITEM_STATUSES: ItemStatus[] = [
   "UNPUBLISHED",
   "ARCHIVED",
 ];
-
-const parsePage = (raw: string | null): number => {
-  const page = Number(raw);
-  return Number.isInteger(page) && page > 0 ? page : 1;
-};
 
 const parseStatus = (raw: string | null): ItemStatus | undefined => {
   return ITEM_STATUSES.find((status) => status === raw);
@@ -38,19 +34,27 @@ export const useDashboard = () => {
   // meaningful — and only ever rendered — for an editor.
   const showAll = isEditor && searchParams.get("scope") === "all";
   const status = parseStatus(searchParams.get("status"));
+  // Drilling into one author only makes sense on top of the all-authors view —
+  // an author's own filter is already implied by their self-scope.
+  const authorId =
+    isEditor && showAll ? searchParams.get("authorId") || undefined : undefined;
 
   const params: ItemListParams = {
     page: parsePage(searchParams.get("page")),
+    pageSize: parsePageSize(searchParams.get("pageSize")),
     ...(status ? { status } : {}),
     ...(isEditor && !showAll && user ? { authorId: user.id } : {}),
+    ...(authorId ? { authorId } : {}),
   };
 
   const itemsQuery = useItems(params);
 
-  const setParam = (key: string, value: string | null) => {
+  const setParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams.toString());
-    if (value) next.set(key, value);
-    else next.delete(key);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
     // Any change to the filters invalidates the offset — a `page` beyond
     // `totalPages` is a 422 from the API, not an empty list.
     next.delete("page");
@@ -59,11 +63,20 @@ export const useDashboard = () => {
     router.push(query ? `${pathname}?${query}` : pathname);
   };
 
+  const setParam = (key: string, value: string | null) => setParams({ [key]: value });
+
+  const toggleScope = () =>
+    // Leaving the all-authors view drops the author filter too — it has no
+    // meaning once the list is self-scoped again.
+    setParams({ scope: showAll ? null : "all", authorId: null });
+
   return {
     ...itemsQuery,
     isEditor,
     showAll,
     status,
+    authorId,
     setParam,
+    toggleScope,
   };
 };

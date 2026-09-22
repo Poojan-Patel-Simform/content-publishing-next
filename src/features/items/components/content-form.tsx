@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { applyValidationErrors } from "@/lib/form-errors";
 import {
@@ -9,16 +9,23 @@ import {
   CHANGE_SUMMARY_MAX_LENGTH,
   EXCERPT_MAX_LENGTH,
   MAX_TAGS,
-  SLUG_MAX_LENGTH,
   TITLE_MAX_LENGTH,
   contentFormSchema,
   emptyContentFormValues,
   type ContentFormValues,
 } from "@/features/items/schema";
+import { useCategories } from "@/features/categories/hooks";
 import { ApiErrorMessage } from "@/components/shared/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 /**
@@ -56,10 +63,14 @@ export const ContentForm = ({
 }: ContentFormProps) => {
   const [formError, setFormError] = useState<unknown>(null);
 
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.categories ?? [];
+
   const {
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ContentFormValues>({
     resolver: zodResolver(contentFormSchema),
@@ -133,12 +144,26 @@ export const ContentForm = ({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="categorySlug">Category</Label>
-          <Input
-            id="categorySlug"
-            maxLength={SLUG_MAX_LENGTH}
-            placeholder="engineering"
-            aria-invalid={!!errors.categorySlug}
-            {...register("categorySlug")}
+          <Controller
+            name="categorySlug"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger id="categorySlug" aria-invalid={!!errors.categorySlug} className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.slug}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           />
           {errors.categorySlug && (
             <p className="text-sm text-destructive">{errors.categorySlug.message}</p>

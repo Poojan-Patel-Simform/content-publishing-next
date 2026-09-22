@@ -3,17 +3,14 @@
 import { useSearchParams } from "next/navigation";
 import type { ContentListParams } from "@/lib/api/content";
 import { usePublishedList } from "@/features/items/hooks";
-
-const parsePage = (raw: string | null): number => {
-  const page = Number(raw);
-  return Number.isInteger(page) && page > 0 ? page : 1;
-};
+import { parsePage, parsePageSize } from "@/lib/pagination";
 
 export const usePublishedFeed = () => {
   const searchParams = useSearchParams();
 
   const params: ContentListParams = {
     page: parsePage(searchParams.get("page")),
+    pageSize: parsePageSize(searchParams.get("pageSize")),
     ...(searchParams.get("q") ? { q: searchParams.get("q")! } : {}),
     ...(searchParams.get("categorySlug")
       ? { categorySlug: searchParams.get("categorySlug")! }

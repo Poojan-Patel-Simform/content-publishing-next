@@ -7,7 +7,12 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { Pagination } from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface FeedCardProps {
@@ -28,7 +33,9 @@ const FeedCard = ({ item }: FeedCardProps) => {
           </Link>
         </CardTitle>
         <CardDescription>
-          <time dateTime={item.publishedAt}>{formatDate(item.publishedAt)}</time>
+          <time dateTime={item.publishedAt}>
+            {formatDate(item.publishedAt)}
+          </time>
           {item.excerpt && <span className="block pt-1.5">{item.excerpt}</span>}
         </CardDescription>
       </CardHeader>
@@ -75,7 +82,10 @@ export const PublishedFeedSkeleton = () => {
   return (
     <ul className="space-y-3" aria-hidden>
       {Array.from({ length: 5 }, (_, index) => (
-        <li key={index} className="space-y-2 rounded-xl p-4 ring-1 ring-foreground/10">
+        <li
+          key={index}
+          className="space-y-2 rounded-xl p-4 ring-1 ring-foreground/10"
+        >
           <Skeleton className="h-5 w-2/3" />
           <Skeleton className="h-4 w-24" />
         </li>
@@ -120,7 +130,11 @@ export const PublishedFeedPresentation = ({
         <FeedError error={error} onRetry={onRetry} />
       ) : data!.items.length === 0 ? (
         <EmptyState
-          title={hasFilters ? "Nothing matches those filters." : "No published content yet."}
+          title={
+            hasFilters
+              ? "Nothing matches those filters."
+              : "No published content yet."
+          }
           description={
             hasFilters
               ? "Try a broader search, or clear the filters to see everything."

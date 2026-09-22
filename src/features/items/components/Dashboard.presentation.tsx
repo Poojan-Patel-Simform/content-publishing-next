@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { isApiError } from "@/lib/api/api-error";
 import type { Paginated } from "@/lib/api/content-types";
 import type { ContentItemDto, ItemStatus } from "@/lib/api/content-types";
@@ -11,6 +11,8 @@ import { Pagination } from "@/components/shared/pagination";
 import { StatusBadge } from "@/features/items/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -24,9 +26,10 @@ const STATUS_TABS: { value: string; label: string }[] = [
 
 interface ItemRowProps {
   item: ContentItemDto;
+  showAuthor: boolean;
 }
 
-const ItemRow = ({ item }: ItemRowProps) => {
+const ItemRow = ({ item, showAuthor }: ItemRowProps) => {
   return (
     <Card size="sm" className="relative transition-colors hover:bg-accent/40">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-(--card-spacing)">
@@ -37,6 +40,13 @@ const ItemRow = ({ item }: ItemRowProps) => {
           {itemDisplayTitle(item)}
         </Link>
         <StatusBadge status={item.status} />
+        {/* The list endpoint only carries the raw authorId — no joined name —
+         * so this is what an editor has to filter by author on. */}
+        {showAuthor && (
+          <span className="font-mono text-xs text-muted-foreground">
+            {item.authorId.slice(0, 8)}
+          </span>
+        )}
         <time
           dateTime={item.updatedAt}
           className="ml-auto text-xs text-muted-foreground"
@@ -93,7 +103,9 @@ export interface DashboardPresentationProps {
   isEditor: boolean;
   showAll: boolean;
   status: ItemStatus | undefined;
+  authorId: string | undefined;
   setParam: (key: string, value: string | null) => void;
+  toggleScope: () => void;
   isPending: boolean;
   isError: boolean;
   error: unknown;
@@ -105,7 +117,9 @@ export const DashboardPresentation = ({
   isEditor,
   showAll,
   status,
+  authorId,
   setParam,
+  toggleScope,
   isPending,
   isError,
   error,
@@ -149,15 +163,51 @@ export const DashboardPresentation = ({
         </Tabs>
 
         {isEditor && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setParam("scope", showAll ? null : "all")}
-          >
+          <Button variant="outline" size="sm" onClick={toggleScope}>
             {showAll ? "Show only mine" : "Show all authors"}
           </Button>
         )}
       </div>
+
+      {isEditor && showAll && (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            setParam("authorId", String(data.get("authorId") ?? "").trim());
+          }}
+          // Re-mount when the URL changes so the uncontrolled input picks up
+          // the new default (back button, a shared link).
+          key={authorId}
+          className="flex flex-wrap items-end gap-2"
+        >
+          <div className="min-w-56 space-y-1.5">
+            <Label htmlFor="dashboard-author-id">Author ID</Label>
+            <Input
+              id="dashboard-author-id"
+              name="authorId"
+              defaultValue={authorId ?? ""}
+              placeholder="Paste an author's id to filter"
+              className="font-mono text-sm"
+            />
+          </div>
+          <Button type="submit" size="sm" variant="outline">
+            <Search />
+            Filter
+          </Button>
+          {authorId && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setParam("authorId", null)}
+            >
+              <X />
+              Clear
+            </Button>
+          )}
+        </form>
+      )}
 
       {isPending ? (
         <DashboardListSkeleton />
@@ -185,7 +235,7 @@ export const DashboardPresentation = ({
           <ul className="space-y-2">
             {data!.items.map((item) => (
               <li key={item.id}>
-                <ItemRow item={item} />
+                <ItemRow item={item} showAuthor={isEditor && showAll} />
               </li>
             ))}
           </ul>
