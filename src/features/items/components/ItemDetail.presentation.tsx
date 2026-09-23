@@ -109,12 +109,17 @@ export const ItemDetailPresentation = ({
 
       {rejected && (
         <Alert variant="destructive">
-          <AlertTitle>An editor sent this back for changes</AlertTitle>
+          <AlertTitle>
+            {isOwnItem
+              ? "An editor sent this back for changes"
+              : "This version was sent back for changes"}
+          </AlertTitle>
           <AlertDescription>
             {/* The reject comment is stored server-side on the `Review` row but
                 no endpoint reads it back, so it can't be shown here yet. */}
-            Version {rejected.versionNumber} was rejected. Edit the draft and
-            submit it again when it&apos;s ready.
+            {isOwnItem
+              ? `Version ${rejected.versionNumber} was rejected. Edit the draft and submit it again when it's ready.`
+              : `Version ${rejected.versionNumber} was rejected. It's with its author now — it comes back to the queue once they resubmit it.`}
           </AlertDescription>
         </Alert>
       )}
@@ -131,7 +136,11 @@ export const ItemDetailPresentation = ({
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <ItemActions item={item} latestVersion={latestVersion ?? null} />
+        <ItemActions
+          item={item}
+          latestVersion={latestVersion ?? null}
+          isOwnItem={isOwnItem}
+        />
         {isEditor && (
           <EditorialActions
             item={item}

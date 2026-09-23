@@ -5,6 +5,7 @@ import { isEditableVersion } from "@/lib/content-display";
 import { useItemEdit } from "@/features/items/components/ItemEdit.hooks";
 import {
   ItemEditNothingToEdit,
+  ItemEditNotYourItem,
   ItemEditNotYours,
   ItemEditPresentation,
   ItemEditSkeleton,
@@ -16,7 +17,8 @@ interface ItemEditContainerProps {
 }
 
 export const ItemEditContainer = ({ id }: ItemEditContainerProps) => {
-  const { itemQuery, versionId, versionQuery, onSubmit } = useItemEdit(id);
+  const { itemQuery, versionId, versionQuery, isOwnItem, onSubmit } =
+    useItemEdit(id);
 
   if (itemQuery.isPending || (versionId && versionQuery.isPending)) {
     return <ItemEditSkeleton />;
@@ -36,6 +38,11 @@ export const ItemEditContainer = ({ id }: ItemEditContainerProps) => {
   }
 
   const { item } = itemQuery.data;
+
+  // An author can only ever reach their own items (the API 404s above), so
+  // this is the editor-typed-the-URL case.
+  if (!isOwnItem) return <ItemEditNotYourItem id={id} />;
+
   const summary = item.currentDraft;
 
   if (!summary || !isEditableVersion(summary.status)) {
@@ -44,7 +51,7 @@ export const ItemEditContainer = ({ id }: ItemEditContainerProps) => {
         id={id}
         description={
           summary
-            ? `Version ${summary.versionNumber} is ${summary.status.toLowerCase().replace(/_/g, " ")}, and only a draft or a rejected version can be edited.`
+            ? `Version ${summary.versionNumber} is ${summary.status.toLowerCase().replace(/_/g, " ")}, and only a draft or a rejected version can be edited.${summary.status === "UNPUBLISHED" ? " Start a revision from the item page to edit it." : ""}`
             : "This item has no version yet."
         }
       />

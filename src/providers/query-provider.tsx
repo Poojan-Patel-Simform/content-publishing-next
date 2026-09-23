@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { makeQueryClient } from "@/lib/query-client";
 import { authKeys } from "@/lib/query-keys";
 import { onSessionExpired } from "@/lib/api/auth-events";
+import type { AuthUser } from "@/lib/api/types";
 
 const AuthSessionSync = () => {
   const queryClient = useQueryClient();
@@ -13,8 +14,13 @@ const AuthSessionSync = () => {
 
   useEffect(() => {
     return onSessionExpired(() => {
+      const previousUser = queryClient.getQueryData<AuthUser | null>(authKeys.me);
       queryClient.setQueryData(authKeys.me, null);
-      router.replace("/login");
+      // A visitor who never signed in also lands here (the `/me` probe 401s and
+      // the refresh fails). They may keep reading the public surface; only a
+      // session that actually expired is sent to /login. Protected routes are
+      // still redirected by `AuthGuard`.
+      if (previousUser) router.replace("/login");
     });
   }, [queryClient, router]);
 

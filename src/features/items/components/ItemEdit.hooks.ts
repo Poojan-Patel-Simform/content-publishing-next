@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { toUpdateInput, type ContentFormValues } from "@/features/items/schema";
+import { useAuth } from "@/features/auth/hooks";
 import { useItem, useItemVersion, useUpdateVersion } from "@/features/items/hooks";
 
 /**
@@ -9,9 +10,14 @@ import { useItem, useItemVersion, useUpdateVersion } from "@/features/items/hook
  * version is being edited is derived here (`currentDraft`), and whether that
  * draft is actually editable is left to the caller, which knows the state
  * machine's rules.
+ *
+ * `isOwnItem` is needed because an author's scope is enforced by the API (a
+ * foreign id is a 404) but an editor's isn't — without it, an editor who
+ * types the URL lands on the form for someone else's draft.
  */
 export const useItemEdit = (id: string) => {
   const router = useRouter();
+  const { user } = useAuth();
 
   const itemQuery = useItem(id);
   // `currentDraft` is the item's newest version whatever its status; whether
@@ -19,6 +25,9 @@ export const useItemEdit = (id: string) => {
   const versionId = itemQuery.data?.item.currentDraft?.id ?? "";
   const versionQuery = useItemVersion(id, versionId);
   const updateVersion = useUpdateVersion(id);
+
+  const item = itemQuery.data?.item;
+  const isOwnItem = item ? item.authorId === user?.id : false;
 
   const onSubmit = async (values: ContentFormValues) => {
     const summary = itemQuery.data?.item.currentDraft;
@@ -30,5 +39,5 @@ export const useItemEdit = (id: string) => {
     router.push(`/items/${id}`);
   };
 
-  return { itemQuery, versionId, versionQuery, onSubmit };
+  return { itemQuery, versionId, versionQuery, isOwnItem, onSubmit };
 };

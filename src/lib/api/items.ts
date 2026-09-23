@@ -7,6 +7,7 @@ import type {
   ItemDetailDto,
   ItemStatus,
   Paginated,
+  VersionStatus,
 } from "@/lib/api/content-types";
 
 export interface ItemListParams {
@@ -15,6 +16,12 @@ export interface ItemListParams {
   /** Editor-only filter; redundant for an author, who is already self-scoped. */
   authorId?: string;
   status?: ItemStatus;
+  /**
+   * Filters on the item's versions rather than the item. The only way to ask
+   * for "rejected": that state lives on the version, and the item carrying it
+   * still reports `status: "DRAFT"`.
+   */
+  versionStatus?: VersionStatus;
 }
 
 export interface CreateItemInput {

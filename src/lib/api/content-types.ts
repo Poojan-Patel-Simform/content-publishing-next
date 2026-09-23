@@ -86,6 +86,11 @@ export interface ContentVersionDto {
   excerpt: string | null;
   categoryId: string | null;
   tagIds: string[];
+  /** Slug twins of the two ids above. `PATCH .../versions/:versionId` speaks
+   * slugs, and no endpoint resolves an id back to one — so these are what the
+   * edit form prefills from and sends back. */
+  categorySlug: string | null;
+  tagSlugs: string[];
   parentVersionId: string | null;
   changeSummary: string | null;
   createdById: string;

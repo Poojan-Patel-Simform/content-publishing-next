@@ -96,21 +96,20 @@ export const toCreateInput = (values: ContentFormValues): CreateItemInput => {
 };
 
 /**
- * `PATCH` treats an absent key as "leave it alone", which matters here: the API
- * returns a version's category and tags as *ids*, and exposes no endpoint to
- * resolve those back to slugs, so the edit form can't prefill them. Leaving
- * those two fields blank therefore has to mean "unchanged" rather than "clear",
- * or every edit would silently strip the version's taxonomy.
+ * Every field is sent on a `PATCH`, blank ones included: the form is prefilled
+ * from the version's own `categorySlug`/`tagSlugs`, so an empty field is the
+ * author having cleared something, not an omission. (Before those slugs existed
+ * on the payload the taxonomy couldn't be prefilled, and blank had to mean
+ * "unchanged" so an edit wouldn't silently strip it.)
  */
 export const toUpdateInput = (values: ContentFormValues): UpdateVersionInput => {
-  const tagSlugs = parseTagSlugs(values.tagSlugs);
-
   return {
     title: values.title,
     body: values.body,
     excerpt: values.excerpt || null,
-    ...(values.categorySlug ? { categorySlug: values.categorySlug } : {}),
-    ...(tagSlugs.length > 0 ? { tagSlugs } : {}),
+    // `null` clears the category; `[]` clears every tag.
+    categorySlug: values.categorySlug || null,
+    tagSlugs: parseTagSlugs(values.tagSlugs),
     changeSummary: values.changeSummary,
   };
 };

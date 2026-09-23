@@ -26,6 +26,7 @@ export const ItemActionsPresentation = ({
     revisionSummary,
     onRevisionSummaryChange,
     isArchived,
+    isUnpublished,
     canEdit,
     canRevise,
     submit,
@@ -55,7 +56,7 @@ export const ItemActionsPresentation = ({
       {canRevise && (
         <Button variant="outline" size="sm" onClick={() => setDialog("revise")}>
           <GitBranch />
-          Revise published
+          {isUnpublished ? "Revise unpublished" : "Revise published"}
         </Button>
       )}
 
@@ -86,7 +87,11 @@ export const ItemActionsPresentation = ({
         open={dialog === "revise"}
         onOpenChange={(open) => (open ? setDialog("revise") : close())}
         title="Start a revision?"
-        description="This branches a new draft from the live version. The published page keeps serving the current text until the revision is reviewed and published."
+        description={
+          isUnpublished
+            ? "This branches a new draft from the unpublished version. Nothing goes live until the revision is reviewed and published."
+            : "This branches a new draft from the live version. The published page keeps serving the current text until the revision is reviewed and published."
+        }
         confirmLabel="Start revision"
         isPending={revise.isPending}
         error={revise.error}

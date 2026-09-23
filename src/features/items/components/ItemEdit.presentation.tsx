@@ -34,6 +34,30 @@ export const ItemEditNotYours = () => {
   );
 };
 
+export interface ItemEditNotYourItemProps {
+  id: string;
+}
+
+/**
+ * The editor-only case: the item loads fine (editors aren't scoped by
+ * `authorId`), it just isn't theirs to edit. Distinct from `ItemEditNotYours`,
+ * which is the 404 an author gets for an id outside their scope — here the
+ * viewer can still see the item, so the way out leads back to it.
+ */
+export const ItemEditNotYourItem = ({ id }: ItemEditNotYourItemProps) => {
+  return (
+    <EmptyState
+      title="This draft belongs to its author"
+      description="Only the author can edit a version and submit it for review. You can still review, publish or archive it from the item page."
+      action={
+        <Button variant="outline" size="sm" render={<Link href={`/items/${id}`} />}>
+          Back to the item
+        </Button>
+      }
+    />
+  );
+};
+
 export interface ItemEditNothingToEditProps {
   id: string;
   description: string;
@@ -93,12 +117,14 @@ export const ItemEditPresentation = ({
           title: version.title,
           body: version.body,
           excerpt: version.excerpt ?? "",
+          categorySlug: version.categorySlug ?? "",
+          tagSlugs: version.tagSlugs.join(", "),
         }}
         submitLabel="Save changes"
         pendingLabel="Saving..."
         onSubmit={onSubmit}
         changeSummaryHint="What changed in this pass? Reviewers read this. Required."
-        taxonomyHint="The API returns category and tags as ids rather than slugs, so they can't be pre-filled here. Leave these blank to keep the version's current ones; fill them in to replace them."
+        taxonomyHint="Clearing either one removes it from this version."
         errorMessages={{
           CONFLICT:
             "This version is no longer editable — someone submitted, approved or published it while you were writing. Your text is still here; copy anything you need before leaving.",

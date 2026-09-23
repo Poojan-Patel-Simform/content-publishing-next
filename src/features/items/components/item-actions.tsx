@@ -10,10 +10,16 @@ import { ItemActionsPresentation } from "@/features/items/components/ItemActions
 interface ItemActionsProps {
   item: ItemDetailDto;
   latestVersion: ContentVersionSummaryDto | null;
+  /** Only the author gets the edit/resubmit path — see `useItemActions`. */
+  isOwnItem: boolean;
 }
 
-export const ItemActions = ({ item, latestVersion }: ItemActionsProps) => {
-  const state = useItemActions(item, latestVersion);
+export const ItemActions = ({
+  item,
+  latestVersion,
+  isOwnItem,
+}: ItemActionsProps) => {
+  const state = useItemActions(item, latestVersion, isOwnItem);
 
   return <ItemActionsPresentation itemId={item.id} state={state} />;
 };

@@ -7,15 +7,23 @@ import { useAuth } from "@/features/auth/hooks";
 import { useItems } from "@/features/items/hooks";
 import { parsePage, parsePageSize } from "@/lib/pagination";
 
-const ITEM_STATUSES: ItemStatus[] = [
+/**
+ * The tab values, which are *not* quite `ItemStatus`: "REJECTED" is a version
+ * state, not an item one, so it travels to the API as `versionStatus` while
+ * sharing the same `?status=` URL param as the rest.
+ */
+export type DashboardFilter = ItemStatus | "REJECTED";
+
+const DASHBOARD_FILTERS: DashboardFilter[] = [
   "DRAFT",
+  "REJECTED",
   "PUBLISHED",
   "UNPUBLISHED",
   "ARCHIVED",
 ];
 
-const parseStatus = (raw: string | null): ItemStatus | undefined => {
-  return ITEM_STATUSES.find((status) => status === raw);
+const parseStatus = (raw: string | null): DashboardFilter | undefined => {
+  return DASHBOARD_FILTERS.find((status) => status === raw);
 };
 
 /**
@@ -42,7 +50,13 @@ export const useDashboard = () => {
   const params: ItemListParams = {
     page: parsePage(searchParams.get("page")),
     pageSize: parsePageSize(searchParams.get("pageSize")),
-    ...(status ? { status } : {}),
+    // A rejected item's own status is still `DRAFT`, so the two filters are
+    // mutually exclusive — sending both would match nothing.
+    ...(status === "REJECTED"
+      ? { versionStatus: "REJECTED" as const }
+      : status
+        ? { status }
+        : {}),
     ...(isEditor && !showAll && user ? { authorId: user.id } : {}),
     ...(authorId ? { authorId } : {}),
   };

@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+/** Stands in for `""` in the category Select, which can't hold an empty value. */
+const NO_CATEGORY = "__none__";
+
 /**
  * The composer, shared by "new draft" (T15) and "edit version" (T19).
  *
@@ -42,7 +45,7 @@ interface ContentFormProps {
   pendingLabel: string;
   onSubmit: (values: ContentFormValues) => Promise<void>;
   changeSummaryHint?: string;
-  /** Edit mode explains why category/tags come up blank. */
+  /** Optional note under the category/tags pair. */
   taxonomyHint?: string;
   secondaryAction?: React.ReactNode;
   errorMessages?: Record<string, string>;
@@ -149,13 +152,20 @@ export const ContentForm = ({
             control={control}
             render={({ field }) => (
               <Select
-                value={field.value}
-                onValueChange={field.onChange}
+                // An empty string is the form's "no category", but a Select
+                // item can't carry one — hence the sentinel, as in
+                // `content-filters`. Without this row a category could be
+                // changed but never removed.
+                value={field.value || NO_CATEGORY}
+                onValueChange={(value) =>
+                  field.onChange(value === NO_CATEGORY ? "" : value)
+                }
               >
                 <SelectTrigger id="categorySlug" aria-invalid={!!errors.categorySlug} className="w-full">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NO_CATEGORY}>No category</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.slug}>
                       {category.name}

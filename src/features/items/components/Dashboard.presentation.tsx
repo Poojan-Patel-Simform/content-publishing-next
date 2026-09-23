@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Plus, Search, X } from "lucide-react";
 import { isApiError } from "@/lib/api/api-error";
 import type { Paginated } from "@/lib/api/content-types";
-import type { ContentItemDto, ItemStatus } from "@/lib/api/content-types";
+import type { ContentItemDto } from "@/lib/api/content-types";
+import type { DashboardFilter } from "@/features/items/components/Dashboard.hooks";
 import { itemDisplayTitle } from "@/lib/content-display";
 import { formatDateTime } from "@/lib/format";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -19,6 +20,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const STATUS_TABS: { value: string; label: string }[] = [
   { value: "all", label: "All" },
   { value: "DRAFT", label: "Draft" },
+  { value: "REJECTED", label: "Rejected" },
   { value: "PUBLISHED", label: "Published" },
   { value: "UNPUBLISHED", label: "Unpublished" },
   { value: "ARCHIVED", label: "Archived" },
@@ -102,7 +104,7 @@ export const DashboardListSkeleton = () => {
 export interface DashboardPresentationProps {
   isEditor: boolean;
   showAll: boolean;
-  status: ItemStatus | undefined;
+  status: DashboardFilter | undefined;
   authorId: string | undefined;
   setParam: (key: string, value: string | null) => void;
   toggleScope: () => void;
