@@ -96,7 +96,7 @@ export const ItemDetailPresentation = ({
           <StatusBadge status={item.status} />
         </div>
         <p className="text-sm text-muted-foreground">
-          {isOwnItem ? "Yours" : `Author ${item.authorId}`} · updated{" "}
+          {isOwnItem ? "Yours" : `Author ${item.author.displayName}`} · updated{" "}
           <time dateTime={item.updatedAt}>{formatDateTime(item.updatedAt)}</time>
         </p>
         {item.status === "PUBLISHED" && (

@@ -78,14 +78,17 @@ export const SiteHeader = () => {
           <NavLink href="/">Read</NavLink>
           {isAuthenticated && <NavLink href="/dashboard">My Content</NavLink>}
           {isEditor && (
-            <NavLink href="/editorial/queue">
-              Review Queue
-              {pendingCount > 0 && (
-                <Badge variant="secondary" className="tabular-nums">
-                  {pendingCount}
-                </Badge>
-              )}
-            </NavLink>
+            <>
+              <NavLink href="/editorial/authors">Authors&apos; Content</NavLink>
+              <NavLink href="/editorial/queue">
+                Review Queue
+                {pendingCount > 0 && (
+                  <Badge variant="secondary" className="tabular-nums">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </NavLink>
+            </>
           )}
         </nav>
 

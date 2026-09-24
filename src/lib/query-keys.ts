@@ -30,6 +30,7 @@ export const itemKeys = {
 export const editorialKeys = {
   all: ["editorial"] as const,
   queue: (params: QueueParams = {}) => ["editorial", "queue", params] as const,
+  authors: () => ["editorial", "authors"] as const,
 };
 
 export const categoryKeys = {

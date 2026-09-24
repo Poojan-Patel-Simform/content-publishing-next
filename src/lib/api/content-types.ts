@@ -41,6 +41,7 @@ export interface ContentItemDto {
   id: string;
   slug: string;
   authorId: string;
+  author: { id: string; displayName: string };
   status: ItemStatus;
   publishedVersionId: string | null;
   publishedTitle: string | null;
@@ -71,6 +72,13 @@ export interface ContentVersionSummaryDto {
  * editor triages on — everywhere else the caller already knows whose item it is. */
 export interface ReviewQueueEntry extends ContentVersionSummaryDto {
   author: { id: string; displayName: string };
+}
+
+/** `GET /editorial/authors` — backs the "Authors' content" filter, so an
+ * editor can pick a name instead of needing to already know someone's id. */
+export interface AuthorSummary {
+  id: string;
+  displayName: string;
 }
 
 /** The full version, returned by `PATCH .../versions/:versionId`,

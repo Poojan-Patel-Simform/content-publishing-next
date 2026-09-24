@@ -33,6 +33,15 @@ export const useReviewQueue = (params: QueueParams) => {
   });
 };
 
+/** Every author, for the "Authors' content" author filter. Rarely changes,
+ * so no `placeholderData` juggling is needed. */
+export const useAuthors = () => {
+  return useQuery({
+    queryKey: editorialKeys.authors(),
+    queryFn: () => editorialApi.listAuthors(),
+  });
+};
+
 export const useApproveVersion = () => {
   const queryClient = useQueryClient();
 

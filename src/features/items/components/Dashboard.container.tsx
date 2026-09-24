@@ -8,28 +8,12 @@ import {
 } from "@/features/items/components/Dashboard.presentation";
 
 const DashboardInner = () => {
-  const {
-    isEditor,
-    showAll,
-    status,
-    authorId,
-    setParam,
-    toggleScope,
-    data,
-    isPending,
-    isError,
-    error,
-    refetch,
-  } = useDashboard();
+  const { status, setParam, data, isPending, isError, error, refetch } = useDashboard();
 
   return (
     <DashboardPresentation
-      isEditor={isEditor}
-      showAll={showAll}
       status={status}
-      authorId={authorId}
       setParam={setParam}
-      toggleScope={toggleScope}
       data={data}
       isPending={isPending}
       isError={isError}

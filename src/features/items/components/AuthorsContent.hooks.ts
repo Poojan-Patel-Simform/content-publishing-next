@@ -2,59 +2,38 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ItemListParams } from "@/lib/api/items";
-import type { ItemStatus } from "@/lib/api/content-types";
-import { useAuth } from "@/features/auth/hooks";
+import { useAuthors } from "@/features/editorial/hooks";
 import { useItems } from "@/features/items/hooks";
 import { parsePage, parsePageSize } from "@/lib/pagination";
+import { parseStatus } from "@/features/items/components/Dashboard.hooks";
 
 /**
- * The tab values, which are *not* quite `ItemStatus`: "REJECTED" is a version
- * state, not an item one, so it travels to the API as `versionStatus` while
- * sharing the same `?status=` URL param as the rest.
+ * Owns this page's URL-param-derived filters and the item list query. The
+ * route itself is restricted to editors (`RoleGuard` in
+ * `(app)/editorial/layout.tsx`), so there's no self-scoping here — omitting
+ * `authorId` lists every author's items; setting it narrows to one.
  */
-export type DashboardFilter = ItemStatus | "REJECTED";
-
-export const DASHBOARD_FILTERS: DashboardFilter[] = [
-  "DRAFT",
-  "REJECTED",
-  "PUBLISHED",
-  "UNPUBLISHED",
-  "ARCHIVED",
-];
-
-export const parseStatus = (raw: string | null): DashboardFilter | undefined => {
-  return DASHBOARD_FILTERS.find((status) => status === raw);
-};
-
-/**
- * Owns the dashboard's URL-param-derived filters and the item list query that
- * depends on them. `AuthGuard` in the (app) layout only renders children once
- * `/me` has resolved, so `user` is already populated here. Always self-scoped
- * to the signed-in user — browsing other authors' content lives on the
- * separate `/editorial/authors` page.
- */
-export const useDashboard = () => {
+export const useAuthorsContent = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
 
   const status = parseStatus(searchParams.get("status"));
+  const authorId = searchParams.get("authorId") || undefined;
 
   const params: ItemListParams = {
     page: parsePage(searchParams.get("page")),
     pageSize: parsePageSize(searchParams.get("pageSize")),
-    // A rejected item's own status is still `DRAFT`, so the two filters are
-    // mutually exclusive — sending both would match nothing.
     ...(status === "REJECTED"
       ? { versionStatus: "REJECTED" as const }
       : status
         ? { status }
         : {}),
-    ...(user ? { authorId: user.id } : {}),
+    ...(authorId ? { authorId } : {}),
   };
 
   const itemsQuery = useItems(params);
+  const authorsQuery = useAuthors();
 
   const setParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -75,6 +54,8 @@ export const useDashboard = () => {
   return {
     ...itemsQuery,
     status,
+    authorId,
+    authors: authorsQuery.data?.authors ?? [],
     setParam,
   };
 };

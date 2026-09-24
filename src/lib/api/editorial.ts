@@ -1,5 +1,6 @@
 import { apiDelete, apiGet, apiPost } from "@/lib/api/client";
 import type {
+  AuthorSummary,
   ContentVersionSummaryDto,
   Paginated,
   ReviewQueueEntry,
@@ -17,6 +18,10 @@ export const editorialApi = {
    * `contentItemId` and `author` on top of the plain version summary. */
   queue: (params: QueueParams = {}) =>
     apiGet<Paginated<ReviewQueueEntry>>("/editorial/queue", { params }),
+
+  /** Every `AUTHOR`, ordered by `displayName`. Backs the "Authors' content"
+   * author filter. */
+  listAuthors: () => apiGet<{ authors: AuthorSummary[] }>("/editorial/authors"),
 
   approve: (versionId: string, input: { comment?: string } = {}) =>
     apiPost<{ version: ContentVersionSummaryDto }>(
