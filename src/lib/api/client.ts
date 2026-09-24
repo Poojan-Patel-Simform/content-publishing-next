@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 import { ApiError } from "@/lib/api/api-error";
 import { emitSessionExpired } from "@/lib/api/auth-events";
+import { getSessionRequestId } from "@/lib/api/session-id";
 import type { ApiEnvelope, AuthUser } from "@/lib/api/types";
 
 declare module "axios" {
@@ -79,6 +80,14 @@ export const apiDelete = <T>(
 ): Promise<T> => {
   return apiClient.delete(url, config) as unknown as Promise<T>;
 };
+
+apiClient.interceptors.request.use((config) => {
+  const sessionRequestId = getSessionRequestId();
+  if (sessionRequestId) {
+    config.headers.set("X-Request-Id", sessionRequestId);
+  }
+  return config;
+});
 
 let refreshPromise: Promise<AuthUser> | null = null;
 
