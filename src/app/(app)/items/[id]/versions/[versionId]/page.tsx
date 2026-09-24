@@ -19,7 +19,10 @@ const VersionDetailPage = ({
 }: PageProps<"/items/[id]/versions/[versionId]">) => {
   const { id, versionId } = use(params);
   const { user } = useAuth();
-  const { data, isPending, isError, error, refetch } = useItemVersion(id, versionId);
+  const { data, isPending, isError, error, refetch } = useItemVersion(
+    id,
+    versionId,
+  );
 
   if (isPending) return <VersionSkeleton />;
 
@@ -30,7 +33,11 @@ const VersionDetailPage = ({
           title="Version not found, or not yours"
           description="It may belong to another author's item."
           action={
-            <Button variant="outline" size="sm" render={<Link href={`/items/${id}`} />}>
+            <Button
+              variant="outline"
+              size="sm"
+              render={<Link href={`/items/${id}`} />}
+            >
               Back to the item
             </Button>
           }
@@ -61,12 +68,7 @@ const VersionDetailPage = ({
           Back to the item
         </Button>
 
-        {user?.role === "EDITOR" && (
-          <RestoreVersionButton
-            itemId={id}
-            version={version}
-          />
-        )}
+        <RestoreVersionButton itemId={id} version={version} />
       </div>
 
       <header className="space-y-2">
@@ -78,7 +80,9 @@ const VersionDetailPage = ({
         </div>
         <p className="text-sm text-muted-foreground">
           Version {version.versionNumber} · created{" "}
-          <time dateTime={version.createdAt}>{formatDateTime(version.createdAt)}</time>
+          <time dateTime={version.createdAt}>
+            {formatDateTime(version.createdAt)}
+          </time>
         </p>
         {version.changeSummary && (
           <p className="text-sm text-muted-foreground">

@@ -15,7 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const ResendVerificationForm = () => {
+interface Props {
+  /** Pre-fills the email field, e.g. with the address just used on the login form. */
+  defaultEmail?: string;
+}
+
+export const ResendVerificationForm = ({ defaultEmail }: Props = {}) => {
   const resendVerification = useResendVerification();
   const [formError, setFormError] = useState<unknown>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -25,7 +30,10 @@ export const ResendVerificationForm = () => {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<ResendInput>({ resolver: zodResolver(resendSchema) });
+  } = useForm<ResendInput>({
+    resolver: zodResolver(resendSchema),
+    defaultValues: { email: defaultEmail ?? "" },
+  });
 
   const onSubmit = async (values: ResendInput) => {
     setFormError(null);

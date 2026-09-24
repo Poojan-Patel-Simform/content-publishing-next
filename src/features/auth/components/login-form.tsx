@@ -8,6 +8,8 @@ import { loginSchema, type LoginInput } from "@/features/auth/schema";
 import { useLogin } from "@/features/auth/hooks";
 import { applyValidationErrors } from "@/lib/form-errors";
 import { AuthFormError } from "@/features/auth/components/auth-form-error";
+import { ResendVerificationForm } from "@/features/auth/components/resend-verification-form";
+import { isApiError } from "@/lib/api/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +20,7 @@ export const LoginForm = () => {
   const searchParams = useSearchParams();
   const login = useLogin();
   const [formError, setFormError] = useState<unknown>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -28,6 +31,7 @@ export const LoginForm = () => {
 
   const onSubmit = async (values: LoginInput) => {
     setFormError(null);
+    setUnverifiedEmail(null);
     try {
       await login.mutateAsync(values);
       // Only same-origin paths, matching the check in `GuestGuard` — an
@@ -37,6 +41,9 @@ export const LoginForm = () => {
     } catch (error) {
       if (!applyValidationErrors(error, setError)) {
         setFormError(error);
+        if (isApiError(error) && error.code === "EMAIL_NOT_VERIFIED") {
+          setUnverifiedEmail(values.email);
+        }
       }
     }
   };
@@ -69,6 +76,12 @@ export const LoginForm = () => {
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Logging in..." : "Log in"}
       </Button>
+
+      {unverifiedEmail && (
+        <div className="border-t pt-4">
+          <ResendVerificationForm defaultEmail={unverifiedEmail} />
+        </div>
+      )}
     </form>
   );
 };
