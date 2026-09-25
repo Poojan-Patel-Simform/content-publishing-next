@@ -96,7 +96,11 @@ export const ContentFilters = () => {
           onValueChange={(value) => apply({ categorySlug: !value || value === "__all__" ? "" : value })}
         >
           <SelectTrigger id="feed-category" className="w-full" aria-label="Category">
-            <SelectValue placeholder="All categories" />
+            <SelectValue placeholder="All categories">
+              {(value: string) =>
+                categories.find((c) => c.slug === value)?.name ?? "All categories"
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">All categories</SelectItem>

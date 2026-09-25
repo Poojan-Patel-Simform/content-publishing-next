@@ -162,7 +162,13 @@ export const ContentForm = ({
                 }
               >
                 <SelectTrigger id="categorySlug" aria-invalid={!!errors.categorySlug} className="w-full">
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder="Select a category">
+                    {(value: string) =>
+                      value === NO_CATEGORY
+                        ? "No category"
+                        : categories.find((c) => c.slug === value)?.name
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_CATEGORY}>No category</SelectItem>

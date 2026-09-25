@@ -117,7 +117,13 @@ export const AuthorsContentPresentation = ({
           }
         >
           <SelectTrigger id="authors-content-author" className="w-full sm:w-64">
-            <SelectValue placeholder="All authors" />
+            <SelectValue placeholder="All authors">
+              {(value: string) =>
+                value === ALL_AUTHORS
+                  ? "All authors"
+                  : authors.find((a) => a.id === value)?.displayName
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_AUTHORS}>All authors</SelectItem>
