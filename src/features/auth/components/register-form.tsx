@@ -7,6 +7,7 @@ import { registerSchema, type RegisterInput } from "@/features/auth/schema";
 import { useRegister } from "@/features/auth/hooks";
 import { applyValidationErrors } from "@/lib/form-errors";
 import { AuthFormError } from "@/features/auth/components/auth-form-error";
+import { ResendVerificationForm } from "@/features/auth/components/resend-verification-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ export const RegisterForm = () => {
   const registerMutation = useRegister();
   const [formError, setFormError] = useState<unknown>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   const {
     register,
@@ -28,6 +30,7 @@ export const RegisterForm = () => {
     setFormError(null);
     try {
       await registerMutation.mutateAsync(values);
+      setRegisteredEmail(values.email);
       setSubmitted(true);
     } catch (error) {
       if (!applyValidationErrors(error, setError)) {
@@ -38,13 +41,21 @@ export const RegisterForm = () => {
 
   if (submitted) {
     return (
-      <Alert>
-        <AlertTitle>Check your inbox</AlertTitle>
-        <AlertDescription>
-          If that address is registered, check your inbox for further
-          instructions to verify your account.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert>
+          <AlertTitle>Check your inbox</AlertTitle>
+          <AlertDescription>
+            If that address is registered, check your inbox for further
+            instructions to verify your account.
+          </AlertDescription>
+        </Alert>
+        <div className="border-t pt-4">
+          <p className="mb-3 text-sm text-muted-foreground">
+            Didn&apos;t get the email?
+          </p>
+          <ResendVerificationForm defaultEmail={registeredEmail ?? undefined} />
+        </div>
+      </div>
     );
   }
 

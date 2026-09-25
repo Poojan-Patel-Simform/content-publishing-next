@@ -51,9 +51,19 @@ export const ResendVerificationForm = ({ defaultEmail }: Props = {}) => {
     return (
       <Alert>
         <AlertTitle>Check your inbox</AlertTitle>
-        <AlertDescription>
-          If that address is registered and unverified, a new verification
-          email is on its way.
+        <AlertDescription className="space-y-2">
+          <p>
+            If that address is registered and unverified, a new verification
+            email is on its way.
+          </p>
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0"
+            onClick={() => setSubmitted(false)}
+          >
+            Didn&apos;t get it? Send again
+          </Button>
         </AlertDescription>
       </Alert>
     );

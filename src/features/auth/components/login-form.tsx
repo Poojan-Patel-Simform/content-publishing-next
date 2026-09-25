@@ -21,6 +21,7 @@ export const LoginForm = () => {
   const login = useLogin();
   const [formError, setFormError] = useState<unknown>(null);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [unverifiedAttempt, setUnverifiedAttempt] = useState(0);
 
   const {
     register,
@@ -43,6 +44,7 @@ export const LoginForm = () => {
         setFormError(error);
         if (isApiError(error) && error.code === "EMAIL_NOT_VERIFIED") {
           setUnverifiedEmail(values.email);
+          setUnverifiedAttempt((attempt) => attempt + 1);
         }
       }
     }
@@ -79,7 +81,10 @@ export const LoginForm = () => {
 
       {unverifiedEmail && (
         <div className="border-t pt-4">
-          <ResendVerificationForm defaultEmail={unverifiedEmail} />
+          <ResendVerificationForm
+            key={unverifiedAttempt}
+            defaultEmail={unverifiedEmail}
+          />
         </div>
       )}
     </form>
