@@ -68,7 +68,9 @@ const VersionDetailPage = ({
           Back to the item
         </Button>
 
-        <RestoreVersionButton itemId={id} version={version} />
+        {user?.role === "EDITOR" && (
+          <RestoreVersionButton itemId={id} version={version} />
+        )}
       </div>
 
       <header className="space-y-2">
