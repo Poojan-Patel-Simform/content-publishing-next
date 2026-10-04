@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { isApiError } from "@/lib/api/api-error";
 import type {
   ContentVersionSummaryDto,
@@ -59,6 +60,9 @@ export const useEditorialActions = (
   // would fight the picker.
   const [scheduleFloor, setScheduleFloor] = useState("");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  // Set once approve/reject hits a 409, so a version that comes back as
+  // `DRAFT` reads as "withdrawn under you" rather than vanishing silently.
+  const [sawConflict, setSawConflict] = useState(false);
 
   const approve = useApproveVersion();
   const reject = useRejectVersion();
@@ -76,10 +80,15 @@ export const useEditorialActions = (
   const canPublish = status === "APPROVED";
   const isScheduled = status === "SCHEDULED";
   const canUnpublish = item.status === "PUBLISHED";
+  // The review token. Read from the same summary the Overview tab renders, so
+  // it always matches the text on screen — and it moves with it on refetch.
+  const submittedAt = latestVersion?.submittedAt ?? null;
+  const canDecide = isPendingReview && !!submittedAt;
+  const isWithdrawn = sawConflict && status === "DRAFT";
 
-  const close = () => {
+  /** Closes the dialog but keeps the typed comment for the next attempt. */
+  const dismissDialog = () => {
     setDialog(null);
-    setComment("");
     setRejectError(null);
     setScheduleError(null);
     approve.reset();
@@ -88,6 +97,11 @@ export const useEditorialActions = (
     schedule.reset();
     cancelSchedule.reset();
     unpublish.reset();
+  };
+
+  const close = () => {
+    dismissDialog();
+    setComment("");
   };
 
   /** A 409 means the page is looking at a stale state — pull the fresh one. */
@@ -109,6 +123,26 @@ export const useEditorialActions = (
     }
   };
 
+  /**
+   * Approve/reject 409s mean the editor's copy is stale (withdrawn, or
+   * withdrawn and resubmitted). Toast the server's reason, close the dialog
+   * so the refreshed text is visible, and keep the comment for the retry.
+   */
+  const runDecision = async (action: () => Promise<unknown>) => {
+    try {
+      await action();
+      close();
+    } catch (error) {
+      if (isApiError(error) && error.status === 409) {
+        toast.error(error.message);
+        refetchOnConflict(error);
+        setSawConflict(true);
+        dismissDialog();
+      }
+      // Anything else stays in the open dialog via its `error` prop.
+    }
+  };
+
   const openSchedule = () => {
     // The picker's floor and the pre-submit guard share one lead, so the
     // picker can't offer a time the guard would then reject.
@@ -123,7 +157,19 @@ export const useEditorialActions = (
   const trimmedComment = comment.trim();
   const versionId = latestVersion?.id ?? "";
 
+  const onConfirmApprove = () => {
+    if (!submittedAt) return;
+    void runDecision(() =>
+      approve.mutateAsync({
+        versionId,
+        submittedAt,
+        ...(trimmedComment ? { comment: trimmedComment } : {}),
+      })
+    );
+  };
+
   const onConfirmReject = () => {
+    if (!submittedAt) return;
     // Required by the API; checked here so an empty box never costs a round
     // trip, and the author always gets a reason.
     if (!trimmedComment) {
@@ -137,7 +183,9 @@ export const useEditorialActions = (
       return;
     }
     setRejectError(null);
-    void run(() => reject.mutateAsync({ versionId, comment: trimmedComment }));
+    void runDecision(() =>
+      reject.mutateAsync({ versionId, comment: trimmedComment, submittedAt })
+    );
   };
 
   const onConfirmSchedule = () => {
@@ -187,6 +235,8 @@ export const useEditorialActions = (
     trimmedComment,
     versionId,
     isPendingReview,
+    canDecide,
+    isWithdrawn,
     canPublish,
     isScheduled,
     canUnpublish,
@@ -197,6 +247,7 @@ export const useEditorialActions = (
     cancelSchedule,
     unpublish,
     run,
+    onConfirmApprove,
     onConfirmReject,
     onConfirmSchedule,
   };

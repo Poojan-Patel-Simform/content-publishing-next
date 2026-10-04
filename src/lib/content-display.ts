@@ -37,6 +37,7 @@ const AUDIT_LABELS: Record<AuditAction, string> = {
   VERSION_CREATED: "New version created",
   VERSION_UPDATED: "Version edited",
   SUBMITTED_FOR_REVIEW: "Submitted for review",
+  SUBMISSION_WITHDRAWN: "Submission withdrawn",
   REVIEW_APPROVED: "Approved by an editor",
   REVIEW_REJECTED: "Sent back for changes",
   PUBLISHED: "Published",

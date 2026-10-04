@@ -26,6 +26,7 @@ export const EditorialActions = ({
 
   if (
     !state.isPendingReview &&
+    !state.isWithdrawn &&
     !state.canPublish &&
     !state.isScheduled &&
     !state.canUnpublish

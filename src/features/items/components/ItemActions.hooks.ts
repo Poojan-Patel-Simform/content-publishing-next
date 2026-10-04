@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { isApiError } from "@/lib/api/api-error";
 import type {
   ContentVersionSummaryDto,
   ItemDetailDto,
 } from "@/lib/api/content-types";
 import { isEditableVersion, isOpenVersion } from "@/lib/content-display";
+import { editorialKeys, itemKeys } from "@/lib/query-keys";
 import {
   useArchiveItem,
   useCreateRevision,
   useSubmitForReview,
+  useWithdrawSubmission,
 } from "@/features/items/hooks";
 
-export type OpenDialog = "submit" | "revise" | "archive" | null;
+export type OpenDialog = "submit" | "withdraw" | "revise" | "archive" | null;
 
 /**
  * Owns the state and mutation wiring for the author-side action bar, gated on
@@ -35,12 +40,14 @@ export const useItemActions = (
   isOwnItem: boolean
 ) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [dialog, setDialog] = useState<OpenDialog>(null);
   const [revisionSummary, setRevisionSummary] = useState("");
 
   const submit = useSubmitForReview(item.id);
   const revise = useCreateRevision(item.id);
   const archive = useArchiveItem(item.id);
+  const withdraw = useWithdrawSubmission(item.id);
 
   const isArchived = item.status === "ARCHIVED";
   const canEdit =
@@ -48,6 +55,12 @@ export const useItemActions = (
     !isArchived &&
     !!latestVersion &&
     isEditableVersion(latestVersion.status);
+  const status = latestVersion?.status;
+  const canWithdraw = isOwnItem && !isArchived && status === "PENDING_REVIEW";
+  // Past review there is nothing to withdraw: the only way back to editing is
+  // a revision once the version is live.
+  const isLocked =
+    isOwnItem && !isArchived && (status === "APPROVED" || status === "SCHEDULED");
   // "Open" = still moving through the workflow and not the live version, i.e.
   // there is already an edit in flight that a revision would collide with.
   const hasOpenVersion =
@@ -67,6 +80,7 @@ export const useItemActions = (
     submit.reset();
     revise.reset();
     archive.reset();
+    withdraw.reset();
   };
 
   const onConfirmSubmit = async () => {
@@ -75,6 +89,24 @@ export const useItemActions = (
       close();
     } catch {
       // Surfaced in the dialog by `error` above.
+    }
+  };
+
+  const onConfirmWithdraw = async () => {
+    try {
+      await withdraw.mutateAsync();
+      close();
+    } catch (error) {
+      // A 409 means an editor got there first (or it already left review):
+      // the dialog's question no longer applies, so say what the server said
+      // and show the state the version actually moved to.
+      if (isApiError(error) && error.status === 409) {
+        toast.error(error.message);
+        close();
+        void queryClient.invalidateQueries({ queryKey: itemKeys.all });
+        void queryClient.invalidateQueries({ queryKey: editorialKeys.all });
+      }
+      // Anything else is surfaced in the dialog by `error` above.
     }
   };
 
@@ -110,11 +142,15 @@ export const useItemActions = (
     isArchived,
     isUnpublished,
     canEdit,
+    canWithdraw,
+    isLocked,
     canRevise,
     submit,
+    withdraw,
     revise,
     archive,
     onConfirmSubmit,
+    onConfirmWithdraw,
     onConfirmRevise,
     onConfirmArchive,
   };

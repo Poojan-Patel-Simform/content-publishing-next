@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Archive, GitBranch, Pencil, Send } from "lucide-react";
+import { Archive, GitBranch, Lock, Pencil, Send, Undo2 } from "lucide-react";
 import { isApiError } from "@/lib/api/api-error";
 import { CHANGE_SUMMARY_MAX_LENGTH } from "@/features/items/schema";
 import type { useItemActions } from "@/features/items/components/ItemActions.hooks";
@@ -28,11 +28,15 @@ export const ItemActionsPresentation = ({
     isArchived,
     isUnpublished,
     canEdit,
+    canWithdraw,
+    isLocked,
     canRevise,
     submit,
+    withdraw,
     revise,
     archive,
     onConfirmSubmit,
+    onConfirmWithdraw,
     onConfirmRevise,
     onConfirmArchive,
   } = state;
@@ -51,6 +55,20 @@ export const ItemActionsPresentation = ({
           <Send />
           Submit for review
         </Button>
+      )}
+
+      {canWithdraw && (
+        <Button variant="outline" size="sm" onClick={() => setDialog("withdraw")}>
+          <Undo2 />
+          Withdraw to edit
+        </Button>
+      )}
+
+      {isLocked && (
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Lock className="size-3.5" />
+          Approved content is locked. Start a revision after it&apos;s published.
+        </p>
       )}
 
       {canRevise && (
@@ -81,6 +99,17 @@ export const ItemActionsPresentation = ({
         isPending={submit.isPending}
         error={submit.error}
         onConfirm={onConfirmSubmit}
+      />
+
+      <ConfirmDialog
+        open={dialog === "withdraw"}
+        onOpenChange={(open) => (open ? setDialog("withdraw") : close())}
+        title="Withdraw from review?"
+        description="This removes it from the review queue. You'll need to submit again after editing."
+        confirmLabel="Withdraw"
+        isPending={withdraw.isPending}
+        error={withdraw.error}
+        onConfirm={onConfirmWithdraw}
       />
 
       <ConfirmDialog

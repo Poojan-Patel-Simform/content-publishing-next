@@ -10,6 +10,7 @@ import {
   EditorialActionDialogs,
   type EditorialActionsState,
 } from "@/features/editorial/components/EditorialActionDialogs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export interface EditorialActionsPresentationProps {
@@ -29,14 +30,36 @@ export const EditorialActionsPresentation = ({
   itemId,
   scheduledFor,
 }: EditorialActionsPresentationProps) => {
-  const { isPendingReview, canPublish, isScheduled, canUnpublish, setDialog, openSchedule } =
-    state;
+  const {
+    isPendingReview,
+    canDecide,
+    isWithdrawn,
+    canPublish,
+    isScheduled,
+    canUnpublish,
+    setDialog,
+    openSchedule,
+  } = state;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {isPendingReview && (
+      {isWithdrawn && (
+        <Alert className="w-full">
+          <AlertTitle>The author withdrew this submission</AlertTitle>
+          <AlertDescription>
+            It&apos;s back with them as a draft and returns to the queue once
+            they resubmit it.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {(isPendingReview || isWithdrawn) && (
         <>
-          <Button size="sm" onClick={() => setDialog("approve")}>
+          <Button
+            size="sm"
+            disabled={!canDecide}
+            onClick={() => setDialog("approve")}
+          >
             <CheckCircle2 />
             Approve
           </Button>
@@ -44,6 +67,7 @@ export const EditorialActionsPresentation = ({
             variant="outline"
             size="sm"
             className="text-destructive"
+            disabled={!canDecide}
             onClick={() => setDialog("reject")}
           >
             <XCircle />

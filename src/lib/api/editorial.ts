@@ -23,14 +23,19 @@ export const editorialApi = {
    * author filter. */
   listAuthors: () => apiGet<{ authors: AuthorSummary[] }>("/editorial/authors"),
 
-  approve: (versionId: string, input: { comment?: string } = {}) =>
+  /** `submittedAt` is the review token: the exact string from the version the
+   * editor loaded, passed back untouched (never round-tripped through `Date`,
+   * which can drop precision). A mismatch — the author withdrew and
+   * resubmitted — comes back as `409`. */
+  approve: (versionId: string, input: { comment?: string; submittedAt: string }) =>
     apiPost<{ version: ContentVersionSummaryDto }>(
       `/editorial/versions/${versionId}/approve`,
       input
     ),
 
-  /** `comment` is required by the API, 1-2000 chars. */
-  reject: (versionId: string, input: { comment: string }) =>
+  /** `comment` is required by the API, 1-2000 chars. `submittedAt` is the
+   * same review token as `approve`. */
+  reject: (versionId: string, input: { comment: string; submittedAt: string }) =>
     apiPost<{ version: ContentVersionSummaryDto }>(
       `/editorial/versions/${versionId}/reject`,
       input

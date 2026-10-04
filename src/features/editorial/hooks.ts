@@ -49,10 +49,16 @@ export const useApproveVersion = () => {
     mutationFn: ({
       versionId,
       comment,
+      submittedAt,
     }: {
       versionId: string;
       comment?: string;
-    }) => editorialApi.approve(versionId, comment ? { comment } : {}),
+      submittedAt: string;
+    }) =>
+      editorialApi.approve(versionId, {
+        submittedAt,
+        ...(comment ? { comment } : {}),
+      }),
     onSuccess: () => invalidateEditorial(queryClient),
   });
 };
@@ -62,8 +68,15 @@ export const useRejectVersion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ versionId, comment }: { versionId: string; comment: string }) =>
-      editorialApi.reject(versionId, { comment }),
+    mutationFn: ({
+      versionId,
+      comment,
+      submittedAt,
+    }: {
+      versionId: string;
+      comment: string;
+      submittedAt: string;
+    }) => editorialApi.reject(versionId, { comment, submittedAt }),
     onSuccess: () => invalidateEditorial(queryClient),
   });
 };

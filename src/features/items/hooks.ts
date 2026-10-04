@@ -123,6 +123,22 @@ export const useSubmitForReview = (id: string) => {
   });
 };
 
+/** Takes a submission back out of review; the queue (and its header badge)
+ * drops it, so the editorial keys go too. */
+export const useWithdrawSubmission = (id: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => itemsApi.withdraw(id),
+    onSuccess: async () => {
+      await Promise.all([
+        invalidateItems(queryClient),
+        queryClient.invalidateQueries({ queryKey: editorialKeys.all }),
+      ]);
+    },
+  });
+};
+
 export const useCreateRevision = (id: string) => {
   const queryClient = useQueryClient();
 

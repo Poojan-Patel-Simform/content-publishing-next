@@ -69,6 +69,12 @@ export const itemsApi = {
   submit: (id: string) =>
     apiPost<{ version: ContentVersionDto }>(`/items/${id}/submit`),
 
+  /** Pulls a `PENDING_REVIEW` version back to `DRAFT` (and nulls
+   * `submittedAt`). `409` once it isn't awaiting review or an editor already
+   * decided on it. */
+  withdraw: (id: string) =>
+    apiPost<{ version: ContentVersionDto }>(`/items/${id}/withdraw`),
+
   createRevision: (id: string, input: { changeSummary?: string } = {}) =>
     apiPost<{ version: ContentVersionDto }>(`/items/${id}/revisions`, input),
 

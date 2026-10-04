@@ -77,6 +77,7 @@ export const EditorialActionDialogs = ({
     cancelSchedule,
     unpublish,
     run,
+    onConfirmApprove,
     onConfirmReject,
     onConfirmSchedule,
   } = state;
@@ -91,15 +92,7 @@ export const EditorialActionDialogs = ({
         confirmLabel="Approve"
         isPending={approve.isPending}
         error={approve.error}
-        errorMessages={CONFLICT_MESSAGES}
-        onConfirm={() =>
-          run(() =>
-            approve.mutateAsync({
-              versionId,
-              ...(trimmedComment ? { comment: trimmedComment } : {}),
-            })
-          )
-        }
+        onConfirm={onConfirmApprove}
       >
         <CommentField
           id="approve-comment"
@@ -119,7 +112,6 @@ export const EditorialActionDialogs = ({
         destructive
         isPending={reject.isPending}
         error={reject.error}
-        errorMessages={CONFLICT_MESSAGES}
         onConfirm={onConfirmReject}
       >
         <CommentField
